@@ -6,6 +6,26 @@ const PUBLIC_VISIBILITY: EventVisibility = 'public';
 const APPROVED_MODERATION_STATUS: ModerationStatus = 'approved';
 const APPROVED_LIFECYCLE_STATUS: EventLifecycleStatus = 'approved';
 
+const PUBLIC_EVENT_SELECT = `
+  id,
+  slug,
+  title,
+  description,
+  flyer_url,
+  flyer_path,
+  venue_name,
+  address_line1,
+  city,
+  state,
+  starts_at,
+  ends_at,
+  timezone,
+  external_url,
+  visibility,
+  age_requirement,
+  category:event_categories (slug, label)
+`;
+
 export const DATE_PRESETS = ['today', 'this_week', 'this_weekend'] as const;
 export type DatePreset = (typeof DATE_PRESETS)[number];
 
@@ -45,19 +65,6 @@ export type PublicCategory = {
   slug: string;
   label: string;
 };
-
-type Constrainable<T> = {
-  eq: (column: string, value: string) => T;
-  gte: (column: string, value: string) => T;
-};
-
-function withPublicEventConstraints<T extends Constrainable<T>>(query: T): T {
-  return query
-    .eq('visibility', PUBLIC_VISIBILITY)
-    .eq('moderation_status', APPROVED_MODERATION_STATUS)
-    .eq('lifecycle_status', APPROVED_LIFECYCLE_STATUS)
-    .gte('expires_at', new Date().toISOString());
-}
 
 function toDateRange(datePreset?: DatePreset): { start?: string; end?: string } {
   if (!datePreset) {
@@ -120,33 +127,15 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
     return [];
   }
 
-  let query = withPublicEventConstraints(
-    supabase
-      .from('events')
-      .select(
-        `
-        id,
-        slug,
-        title,
-        description,
-        flyer_url,
-        flyer_path,
-        venue_name,
-        address_line1,
-        city,
-        state,
-        starts_at,
-        ends_at,
-        timezone,
-        external_url,
-        visibility,
-        age_requirement,
-        category:event_categories (slug, label)
-      `
-      )
-      .order('starts_at', { ascending: true })
-      .order('created_at', { ascending: true })
-  );
+  let query = supabase
+    .from('events')
+    .select(PUBLIC_EVENT_SELECT)
+    .eq('visibility', PUBLIC_VISIBILITY)
+    .eq('moderation_status', APPROVED_MODERATION_STATUS)
+    .eq('lifecycle_status', APPROVED_LIFECYCLE_STATUS)
+    .gte('expires_at', new Date().toISOString())
+    .order('starts_at', { ascending: true })
+    .order('created_at', { ascending: true });
 
   if (trimmedCity) {
     query = query.ilike('city', `%${trimmedCity}%`);
@@ -180,34 +169,17 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
 export const getPublicEventBySlug = cache(async (slug: string): Promise<PublicEvent | null> => {
   const supabase = await createClient();
 
-  const { data, error } = await withPublicEventConstraints(
-    supabase
-      .from('events')
-      .select(
-        `
-        id,
-        slug,
-        title,
-        description,
-        flyer_url,
-        flyer_path,
-        venue_name,
-        address_line1,
-        city,
-        state,
-        starts_at,
-        ends_at,
-        timezone,
-        external_url,
-        visibility,
-        age_requirement,
-        category:event_categories (slug, label)
-      `
-      )
-      .eq('slug', slug)
-      .limit(1)
-      .maybeSingle()
-  ).returns<PublicEventRow | null>();
+  const { data, error } = await supabase
+    .from('events')
+    .select(PUBLIC_EVENT_SELECT)
+    .eq('slug', slug)
+    .eq('visibility', PUBLIC_VISIBILITY)
+    .eq('moderation_status', APPROVED_MODERATION_STATUS)
+    .eq('lifecycle_status', APPROVED_LIFECYCLE_STATUS)
+    .gte('expires_at', new Date().toISOString())
+    .limit(1)
+    .maybeSingle()
+    .returns<PublicEventRow | null>();
 
   if (error) {
     throw new Error(`Failed to fetch public event by slug: ${error.message}`);
