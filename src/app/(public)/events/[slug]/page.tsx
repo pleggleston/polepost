@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { EventMeta } from '@/components/events/event-meta';
+import { EmptyState } from '@/components/events/empty-state';
 import { getPublicEventBySlug } from '@/lib/events/public-events';
 
 type EventDetailPageProps = {
@@ -10,7 +11,20 @@ type EventDetailPageProps = {
 
 export default async function EventDetailPage({ params }: EventDetailPageProps) {
   const { slug } = await params;
-  const event = await getPublicEventBySlug(slug);
+
+  let event: Awaited<ReturnType<typeof getPublicEventBySlug>>;
+  try {
+    event = await getPublicEventBySlug(slug);
+  } catch {
+    return (
+      <EmptyState
+        title="Event details unavailable"
+        description="We could not load this public event right now."
+        ctaLabel="Back to browse"
+        ctaHref="/browse"
+      />
+    );
+  }
 
   if (!event) {
     notFound();
