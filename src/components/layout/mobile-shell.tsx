@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import Link from 'next/link';
 import { ReactNode } from 'react';
 
@@ -5,7 +6,7 @@ type MobileShellProps = {
   children: ReactNode;
 };
 
-const navItems = [
+const navItems: Array<{ href: Route; label: string }> = [
   { href: '/browse', label: 'Browse' },
   { href: '/pole', label: 'Pole' },
   { href: '/saved', label: 'Saved' },
