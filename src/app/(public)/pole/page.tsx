@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react';
+import { PoleEmptyState } from '@/components/pole/pole-empty-state';
 import { PoleFeed } from '@/components/pole/pole-feed';
 import type { PoleEvent } from '@/components/pole/types';
 import { listPublicEvents } from '@/lib/events/public-events';
@@ -28,19 +30,46 @@ function mapToPoleEvent(event: Awaited<ReturnType<typeof listPublicEvents>>[numb
   };
 }
 
-export default async function PolePage() {
-  const events = await listPublicEvents();
-  const poleEvents = events.map(mapToPoleEvent);
-
+function renderPoleShell(content: ReactNode) {
   return (
     <section className="fixed inset-0 isolate overflow-hidden">
       <div className="fixed inset-0 bg-[url('/pole-bg.png')] bg-cover bg-center bg-no-repeat" />
 
       <div className="pointer-events-none absolute left-1/2 top-[42vh] w-[72vw] max-w-[348px] -translate-x-1/2 -translate-y-1/2 sm:w-[66vw]">
-        <div className="pointer-events-auto aspect-[3/4] w-full">
-          <PoleFeed events={poleEvents} />
-        </div>
+        <div className="pointer-events-auto aspect-[3/4] w-full">{content}</div>
       </div>
     </section>
   );
+}
+
+export default async function PolePage() {
+  try {
+    const events = await listPublicEvents();
+    const poleEvents = events.map(mapToPoleEvent);
+
+    if (poleEvents.length === 0) {
+      return renderPoleShell(<PoleEmptyState title="No public events yet" description="Approved upcoming events will appear here when they are published." />);
+    }
+
+    return renderPoleShell(<PoleFeed events={poleEvents} />);
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error('[PolePage] Failed to load public events for /pole.', {
+        message: error.message,
+        stack: error.stack,
+        cause: error.cause
+      });
+    } else {
+      console.error('[PolePage] Failed to load public events for /pole with non-Error value.', {
+        error
+      });
+    }
+
+    return renderPoleShell(
+      <PoleEmptyState
+        title="Events are temporarily unavailable"
+        description="We could not load Pole events right now. Please try again shortly."
+      />
+    );
+  }
 }
