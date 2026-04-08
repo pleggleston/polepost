@@ -1,8 +1,5 @@
 import { MobileShell } from '@/components/layout/mobile-shell';
-import { requireRole } from '@/lib/auth/guards';
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  await requireRole(['moderator', 'admin']);
-
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return <MobileShell>{children}</MobileShell>;
 }
