@@ -1,4 +1,3 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import type { PoleEvent } from './types';
@@ -21,7 +20,7 @@ export function PoleCard({ event }: { event: PoleEvent }) {
     <article className="h-full overflow-hidden rounded-md border border-black/15 bg-white/80 shadow-[0_18px_34px_rgba(0,0,0,0.32)] backdrop-blur-[1px]">
       <Link href={eventHref} className="relative block h-full w-full">
         {event.flyer_url ? (
-          <Image src={event.flyer_url} alt={`Flyer for ${event.title}`} width={1200} height={1600} unoptimized className="h-full w-full object-cover" />
+          <img src={event.flyer_url} alt={`Flyer for ${event.title}`} className="h-full w-full object-cover" loading="lazy" />
         ) : (
           <div className="flex h-full items-center justify-center bg-zinc-100 text-sm text-zinc-600">Flyer coming soon</div>
         )}
