@@ -17,25 +17,37 @@ export function PoleFeed({ events }: { events: PoleEvent[] }) {
   const [sessionId, setSessionId] = useState<string>('');
 
   useEffect(() => {
-    const browserSession = window.sessionStorage.getItem('pole_session_id');
+    try {
+      const browserSession = window.sessionStorage.getItem('pole_session_id');
 
-    if (browserSession) {
-      setSessionId(browserSession);
-      return;
+      if (browserSession) {
+        setSessionId(browserSession);
+        return;
+      }
+
+      const generatedSession =
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      window.sessionStorage.setItem('pole_session_id', generatedSession);
+      setSessionId(generatedSession);
+    } catch {
+      const fallbackSession = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      setSessionId(fallbackSession);
     }
-
-    const generatedSession = crypto.randomUUID();
-    window.sessionStorage.setItem('pole_session_id', generatedSession);
-    setSessionId(generatedSession);
   }, []);
 
   useEffect(() => {
     const hydrateUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user }
-      } = await supabase.auth.getUser();
-      setUserId(user?.id ?? null);
+      try {
+        const supabase = createClient();
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
+        setUserId(user?.id ?? null);
+      } catch {
+        setUserId(null);
+      }
     };
 
     void hydrateUser();

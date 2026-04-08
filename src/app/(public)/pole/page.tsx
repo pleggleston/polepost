@@ -3,17 +3,28 @@ import type { PoleEvent } from '@/components/pole/types';
 import { listPublicEvents } from '@/lib/events/public-events';
 
 function mapToPoleEvent(event: Awaited<ReturnType<typeof listPublicEvents>>[number]): PoleEvent {
+  const safeId = typeof event.id === 'string' && event.id.length > 0 ? event.id : `event-${Math.random().toString(16).slice(2)}`;
+  const safeSlug = typeof event.slug === 'string' ? event.slug : '';
+  const safeTitle = typeof event.title === 'string' ? event.title : 'Untitled event';
+  const safeFlyerUrl = typeof event.flyer_url === 'string' ? event.flyer_url : null;
+  const safeStartsAt = typeof event.starts_at === 'string' ? event.starts_at : '';
+  const safeTimezone = typeof event.timezone === 'string' ? event.timezone : 'UTC';
+  const safeCity = typeof event.city === 'string' ? event.city : '';
+  const safeState = typeof event.state === 'string' ? event.state : '';
+  const safeVenueName = typeof event.venue_name === 'string' ? event.venue_name : '';
+  const safeCategoryLabel = typeof event.category?.label === 'string' ? event.category.label : null;
+
   return {
-    id: event.id,
-    slug: event.slug,
-    title: event.title,
-    flyer_url: event.flyer_url,
-    starts_at: event.starts_at,
-    timezone: event.timezone,
-    city: event.city,
-    state: event.state,
-    venue_name: event.venue_name,
-    category_label: event.category?.label ?? null
+    id: safeId,
+    slug: safeSlug,
+    title: safeTitle,
+    flyer_url: safeFlyerUrl,
+    starts_at: safeStartsAt,
+    timezone: safeTimezone,
+    city: safeCity,
+    state: safeState,
+    venue_name: safeVenueName,
+    category_label: safeCategoryLabel
   };
 }
 
