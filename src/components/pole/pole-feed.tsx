@@ -73,17 +73,12 @@ export function PoleFeed({ events }: { events: PoleEvent[] }) {
     }
 
     const supabase = createClient();
-    const { error } = await supabase.from('saved_events').upsert(
-      {
-        profile_id: userId,
-        event_id: eventId
-      },
-      {
-        onConflict: 'profile_id,event_id'
-      }
-    );
+    const { error } = await supabase.from('saved_events').insert({
+      profile_id: userId,
+      event_id: eventId
+    });
 
-    if (error) {
+    if (error && error.code !== '23505') {
       throw new Error(error.message);
     }
   };
