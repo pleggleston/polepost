@@ -1,31 +1,20 @@
 import { EmptyState } from '@/components/events/empty-state';
 import { EventList } from '@/components/events/event-list';
 import { FilterBar } from '@/components/events/filter-bar';
-import { DATE_PRESETS, listPublicCategories, listPublicEvents, type DatePreset } from '@/lib/events/public-events';
+import { listPublicCategories, listPublicEvents, normalizePublicEventFilters, type PublicEventQueryParams } from '@/lib/events/public-events';
 
 type BrowsePageProps = {
-  searchParams: Promise<{
-    city?: string;
-    category?: string;
-    date?: string;
-  }>;
+  searchParams: Promise<PublicEventQueryParams>;
 };
-
-function parseDatePreset(value?: string): DatePreset | undefined {
-  if (value && DATE_PRESETS.includes(value as DatePreset)) {
-    return value as DatePreset;
-  }
-
-  return undefined;
-}
 
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
   const params = await searchParams;
-  const datePreset = parseDatePreset(params.date);
+  const filters = normalizePublicEventFilters(params);
+  const hasActiveFilters = Boolean(filters.city || filters.category || filters.datePreset);
 
   try {
     const [events, categories] = await Promise.all([
-      listPublicEvents({ city: params.city, category: params.category, datePreset }),
+      listPublicEvents(filters),
       listPublicCategories()
     ]);
 
@@ -36,16 +25,20 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
           <p className="text-sm text-muted-foreground">Public, approved, upcoming events only.</p>
         </section>
 
-        <FilterBar city={params.city} category={params.category} datePreset={datePreset} categories={categories} />
+        <FilterBar city={filters.city} category={filters.category} datePreset={filters.datePreset} categories={categories} />
 
         {events.length > 0 ? (
           <EventList events={events} />
         ) : (
           <EmptyState
             title="No matching events"
-            description="Try clearing one or more filters to see more upcoming events."
-            ctaLabel="Reset filters"
-            ctaHref="/browse"
+            description={
+              hasActiveFilters
+                ? 'Try a broader city/category/date selection, or clear all filters to see every approved upcoming event.'
+                : 'There are no approved upcoming public events yet. Check back soon.'
+            }
+            ctaLabel={hasActiveFilters ? 'Clear filters' : 'Back home'}
+            ctaHref={hasActiveFilters ? '/browse' : '/'}
           />
         )}
       </div>

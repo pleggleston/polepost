@@ -36,6 +36,12 @@ export type PublicEventFilters = {
   limit?: number;
 };
 
+export type PublicEventQueryParams = {
+  city?: string;
+  category?: string;
+  date?: string;
+};
+
 type PublicEventRow = {
   id: string;
   slug: string;
@@ -65,6 +71,18 @@ export type PublicCategory = {
   slug: string;
   label: string;
 };
+
+export function normalizePublicEventFilters(params: PublicEventQueryParams): PublicEventFilters {
+  const city = params.city?.trim();
+  const category = params.category?.trim();
+  const date = params.date?.trim();
+
+  return {
+    city: city || undefined,
+    category: category || undefined,
+    datePreset: date && DATE_PRESETS.includes(date as DatePreset) ? (date as DatePreset) : undefined
+  };
+}
 
 function toDateRange(datePreset?: DatePreset): { start?: string; end?: string } {
   if (!datePreset) {
@@ -118,8 +136,8 @@ async function resolveCategoryIdBySlug(slug: string): Promise<string | null> {
 export async function listPublicEvents(filters: PublicEventFilters = {}): Promise<PublicEvent[]> {
   const supabase = await createClient();
 
-  const trimmedCity = filters.city?.trim();
-  const trimmedCategory = filters.category?.trim();
+  const trimmedCity = filters.city?.trim() || undefined;
+  const trimmedCategory = filters.category?.trim() || undefined;
   const dateRange = toDateRange(filters.datePreset);
 
   const categoryId = trimmedCategory ? await resolveCategoryIdBySlug(trimmedCategory) : null;
@@ -135,7 +153,8 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
     .eq('lifecycle_status', APPROVED_LIFECYCLE_STATUS)
     .gte('expires_at', new Date().toISOString())
     .order('starts_at', { ascending: true })
-    .order('created_at', { ascending: true });
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true });
 
   if (trimmedCity) {
     query = query.ilike('city', `%${trimmedCity}%`);

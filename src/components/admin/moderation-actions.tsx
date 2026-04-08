@@ -54,6 +54,8 @@ export function ModerationActions({ eventId, disabled = false }: ModerationActio
         <DecisionButton label="Flag" action="flag" disabled={disabled || isPending} variant="warning" />
       </div>
 
+      {isPending ? <p className="text-xs text-muted-foreground">Submitting moderation decision…</p> : null}
+
       {state.error ? <p className="text-sm text-destructive">{state.error}</p> : null}
       {state.success ? <p className="text-sm text-emerald-600">{state.success}</p> : null}
     </form>
