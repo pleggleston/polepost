@@ -42,6 +42,7 @@ Apply SQL migrations in order:
 1. `supabase/migrations/202604070001_init_schema.sql`
 2. `supabase/migrations/202604070002_rls_policies.sql`
 3. `supabase/migrations/202604070003_seed_categories.sql`
+4. `supabase/migrations/202604070004_storage_event_flyers.sql`
 
 These create:
 - `profiles`
@@ -51,6 +52,8 @@ These create:
 - `saved_events`
 - `event_swipes`
 - `moderation_reviews`
+
+See `docs/backend-foundation.md` for the backend schema/RLS/storage foundation audit and operational checklist.
 
 ## What remains before Phase 2
 
