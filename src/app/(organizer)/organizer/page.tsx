@@ -3,13 +3,37 @@ import { OrganizerAccessBlocked } from '@/components/organizer/organizer-access-
 import { listOwnedEvents, getOrganizerContext } from '@/lib/organizer/queries';
 
 export default async function OrganizerHomePage() {
-  const organizerContext = await getOrganizerContext();
+  let organizerContext: Awaited<ReturnType<typeof getOrganizerContext>>;
+  try {
+    organizerContext = await getOrganizerContext();
+  } catch {
+    return (
+      <section className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+        Could not load organizer access right now. Please refresh and try again.
+      </section>
+    );
+  }
 
   if (!organizerContext.hasOrganizerAccess || !organizerContext.organizerId) {
     return <OrganizerAccessBlocked />;
   }
 
-  const events = await listOwnedEvents(organizerContext.organizerId);
+  let events: Awaited<ReturnType<typeof listOwnedEvents>> = [];
+  try {
+    events = await listOwnedEvents(organizerContext.organizerId);
+  } catch {
+    return (
+      <section className="space-y-4">
+        <header className="rounded-xl border border-border bg-card p-4">
+          <h1 className="text-lg font-semibold">Organizer dashboard</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Signed in as {organizerContext.organizerName ?? 'Organizer'}.</p>
+        </header>
+        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          Could not load your current submissions right now.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">

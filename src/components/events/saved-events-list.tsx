@@ -22,7 +22,17 @@ export function SavedEventsList({ initialItems }: SavedEventsListProps) {
       [...items].sort((a, b) => {
         const aStartsAt = a.event?.starts_at ?? '';
         const bStartsAt = b.event?.starts_at ?? '';
-        return aStartsAt.localeCompare(bStartsAt);
+        const startsAtSort = aStartsAt.localeCompare(bStartsAt);
+        if (startsAtSort !== 0) {
+          return startsAtSort;
+        }
+
+        const createdAtSort = b.created_at.localeCompare(a.created_at);
+        if (createdAtSort !== 0) {
+          return createdAtSort;
+        }
+
+        return a.event_id.localeCompare(b.event_id);
       }),
     [items]
   );

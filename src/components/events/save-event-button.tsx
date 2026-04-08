@@ -46,6 +46,7 @@ export function SaveEventButton({ eventId, initialSaved, isAuthenticated, onSave
 
         setSaved(false);
         onSavedChange?.(false);
+        setMessage('Removed from saved events.');
         return;
       }
 
@@ -60,6 +61,7 @@ export function SaveEventButton({ eventId, initialSaved, isAuthenticated, onSave
 
       setSaved(true);
       onSavedChange?.(true);
+      setMessage(error?.code === '23505' ? 'Already in your saved events.' : 'Saved to your events list.');
     } catch {
       setMessage(saved ? 'Could not remove saved event right now.' : 'Could not save this event right now.');
     } finally {
@@ -78,7 +80,7 @@ export function SaveEventButton({ eventId, initialSaved, isAuthenticated, onSave
           `inline-flex rounded-md px-3 py-2 text-sm font-semibold ${saved ? 'bg-muted text-foreground' : 'bg-primary text-primary-foreground'} disabled:cursor-not-allowed disabled:opacity-60`
         }
       >
-        {busy ? 'Saving…' : saved ? 'Saved' : 'Save event'}
+        {busy ? 'Saving…' : saved ? 'Saved event' : 'Save event'}
       </button>
       {message ? (
         <p className="text-xs text-muted-foreground">

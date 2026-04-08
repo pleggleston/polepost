@@ -3,13 +3,38 @@ import { AdminAccessBlocked } from '@/components/admin/admin-access-blocked';
 import { getAdminAccessContext, listAdminEvents, listModerationQueueEvents } from '@/lib/admin/moderation';
 
 export default async function AdminPage() {
-  const access = await getAdminAccessContext();
+  let access: Awaited<ReturnType<typeof getAdminAccessContext>>;
+  try {
+    access = await getAdminAccessContext();
+  } catch {
+    return (
+      <section className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+        Could not load admin access right now. Please refresh and try again.
+      </section>
+    );
+  }
 
   if (!access.isAuthorized) {
     return <AdminAccessBlocked isAuthenticated={access.isAuthenticated} />;
   }
 
-  const [queueItems, allEvents] = await Promise.all([listModerationQueueEvents(), listAdminEvents()]);
+  let queueItems: Awaited<ReturnType<typeof listModerationQueueEvents>> = [];
+  let allEvents: Awaited<ReturnType<typeof listAdminEvents>> = [];
+  try {
+    [queueItems, allEvents] = await Promise.all([listModerationQueueEvents(), listAdminEvents()]);
+  } catch {
+    return (
+      <section className="space-y-4">
+        <header className="rounded-xl border border-border bg-card p-4">
+          <h1 className="text-lg font-semibold">Admin moderation</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Use this area to review pending submissions and manage event moderation states.</p>
+        </header>
+        <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+          Could not load moderation stats right now.
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4">

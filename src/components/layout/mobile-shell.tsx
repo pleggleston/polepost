@@ -17,7 +17,9 @@ export function MobileShell({ children }: MobileShellProps) {
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-md flex-col border-x border-border bg-white">
       <header className="sticky top-0 z-20 border-b border-border bg-white px-4 py-3">
-        <h1 className="text-lg font-semibold tracking-tight">PolePost</h1>
+        <Link href="/" className="text-lg font-semibold tracking-tight">
+          PolePost
+        </Link>
       </header>
       <main className="flex-1 px-4 py-4">{children}</main>
       <nav className="sticky bottom-0 grid grid-cols-4 gap-1 border-t border-border bg-white p-2">

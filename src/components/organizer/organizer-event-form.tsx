@@ -24,13 +24,13 @@ export function OrganizerEventForm({ mode, categories, initialValues, submitActi
   return (
     <form action={formAction} className="space-y-4 rounded-xl border border-border bg-card p-4">
       {state.error ? <p className="rounded-md bg-destructive/10 p-2 text-sm text-destructive">{state.error}</p> : null}
-
-      <div className="grid gap-2">
+      <fieldset disabled={isPending} className="space-y-4 disabled:cursor-not-allowed disabled:opacity-80">
+        <div className="grid gap-2">
         <label htmlFor="title" className="text-sm font-medium">
           Title
         </label>
         <input id="title" name="title" required defaultValue={initialValues?.title ?? ''} className="rounded-md border border-input bg-background px-3 py-2 text-sm" />
-      </div>
+        </div>
 
       <div className="grid gap-2">
         <label htmlFor="description" className="text-sm font-medium">
@@ -142,13 +142,14 @@ export function OrganizerEventForm({ mode, categories, initialValues, submitActi
         <Field label="External URL" name="external_url" type="url" defaultValue={initialValues?.external_url ?? ''} />
       </div>
 
-      <button
-        type="submit"
-        disabled={isPending || categories.length === 0}
-        className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isPending ? 'Saving…' : mode === 'create' ? 'Create event submission' : 'Save event changes'}
-      </button>
+        <button
+          type="submit"
+          disabled={isPending || categories.length === 0}
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isPending ? 'Saving…' : mode === 'create' ? 'Create event submission' : 'Save event changes'}
+        </button>
+      </fieldset>
     </form>
   );
 }
