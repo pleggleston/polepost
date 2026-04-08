@@ -1,9 +1,13 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { EventMeta } from '@/components/events/event-meta';
+import { CalendarActions } from '@/components/events/calendar-actions';
 import { EmptyState } from '@/components/events/empty-state';
+import { EventMeta } from '@/components/events/event-meta';
+import { SaveEventButton } from '@/components/events/save-event-button';
+import { getCurrentUser } from '@/lib/auth/session';
 import { getPublicEventBySlug } from '@/lib/events/public-events';
+import { isEventSavedForProfile } from '@/lib/events/saved-events';
 
 type EventDetailPageProps = {
   params: Promise<{ slug: string }>;
@@ -28,6 +32,17 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
 
   if (!event) {
     notFound();
+  }
+
+  const user = await getCurrentUser();
+
+  let isSaved = false;
+  if (user) {
+    try {
+      isSaved = await isEventSavedForProfile(user.id, event.id);
+    } catch {
+      isSaved = false;
+    }
   }
 
   return (
@@ -58,6 +73,12 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         <h1 className="text-2xl font-bold leading-tight">{event.title}</h1>
         <p className="whitespace-pre-wrap text-sm text-muted-foreground">{event.description}</p>
       </div>
+
+      <section className="space-y-3 rounded-xl border border-border p-4">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Actions</h2>
+        <SaveEventButton eventId={event.id} initialSaved={isSaved} isAuthenticated={Boolean(user)} />
+        <CalendarActions event={event} />
+      </section>
 
       <section className="space-y-2 rounded-xl border border-border p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Event details</h2>

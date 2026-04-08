@@ -1,4 +1,11 @@
-import type { PublicEvent } from '@/lib/events/public-events';
+type EventMetaEvent = {
+  starts_at: string;
+  timezone: string;
+  venue_name: string;
+  city: string;
+  state: string;
+  age_requirement: 'all_ages' | 'age_18_plus' | 'age_21_plus';
+};
 
 function formatDateTime(startsAt: string, timezone: string): string {
   const date = new Date(startsAt);
@@ -14,17 +21,17 @@ function formatDateTime(startsAt: string, timezone: string): string {
   }).format(date);
 }
 
-function formatLocation(event: PublicEvent): string {
+function formatLocation(event: EventMetaEvent): string {
   return `${event.city}, ${event.state}`;
 }
 
-function formatAgeRequirement(age: PublicEvent['age_requirement']): string {
+function formatAgeRequirement(age: EventMetaEvent['age_requirement']): string {
   if (age === 'age_18_plus') return '18+';
   if (age === 'age_21_plus') return '21+';
   return 'All ages';
 }
 
-export function EventMeta({ event }: { event: PublicEvent }) {
+export function EventMeta({ event }: { event: EventMetaEvent }) {
   return (
     <div className="space-y-1 text-sm text-muted-foreground">
       <p>{formatDateTime(event.starts_at, event.timezone)}</p>
