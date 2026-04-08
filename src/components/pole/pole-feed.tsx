@@ -68,7 +68,7 @@ export function PoleFeed({ events }: { events: PoleEvent[] }) {
 
   const persistSave = async (eventId: string) => {
     if (!userId) {
-      setAuthMessage('Sign in to save events. Your swipe still moved to the next card.');
+      setAuthMessage('Sign in to save events.');
       return;
     }
 
@@ -105,29 +105,28 @@ export function PoleFeed({ events }: { events: PoleEvent[] }) {
   };
 
   if (!currentEvent) {
-    return <PoleEmptyState title="You reached the end" description="No more upcoming events right now. Check back soon." />;
+    return (
+      <div className="flex h-full items-center justify-center">
+        <PoleEmptyState title="You reached the end" description="No more upcoming events right now." />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-3">
-      {errorMessage || authMessage ? <div className="rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">{errorMessage ?? authMessage}</div> : null}
+    <div className="relative h-full w-full">
+      {errorMessage || authMessage ? (
+        <div className="absolute left-2 right-2 top-2 z-20 rounded border border-black/20 bg-black/65 px-2 py-1 text-[11px] text-white">{errorMessage ?? authMessage}</div>
+      ) : null}
 
-      <div className="relative mx-auto w-full max-w-sm pb-4">
-        {nextEvent ? (
-          <div className="pointer-events-none absolute inset-x-3 top-3 -z-10 opacity-60">
-            <PoleCard event={nextEvent} />
-          </div>
-        ) : null}
+      {nextEvent ? (
+        <div className="pointer-events-none absolute inset-2 top-3 -z-10 opacity-55">
+          <PoleCard event={nextEvent} />
+        </div>
+      ) : null}
 
-        <AnimatePresence>
-          <SwipeableCard key={currentEvent.id} event={currentEvent} onDismiss={() => void handleSwipeAction('dismiss')} onSave={() => void handleSwipeAction('save')} />
-        </AnimatePresence>
-      </div>
-
-      <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
-        <p>Swipe left to dismiss</p>
-        <p>Swipe right to save</p>
-      </div>
+      <AnimatePresence>
+        <SwipeableCard key={currentEvent.id} event={currentEvent} onDismiss={() => void handleSwipeAction('dismiss')} onSave={() => void handleSwipeAction('save')} />
+      </AnimatePresence>
     </div>
   );
 }
@@ -167,8 +166,8 @@ function SwipeableCard({ event, onDismiss, onSave }: { event: PoleEvent; onDismi
 
   return (
     <motion.div
-      className="relative touch-pan-y"
-      style={{ transform: `translateX(${dragX}px) rotate(${dragX / 24}deg)`, transition: dragging ? 'none' : 'transform 180ms ease-out' }}
+      className="relative h-full touch-pan-x"
+      style={{ transform: `translateX(${dragX}px) rotate(${dragX / 28}deg)`, transition: dragging ? 'none' : 'transform 180ms ease-out' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
@@ -179,10 +178,10 @@ function SwipeableCard({ event, onDismiss, onSave }: { event: PoleEvent; onDismi
         }
       }}
     >
-      <div style={{ opacity: dismissOpacity }} className="pointer-events-none absolute left-4 top-4 z-10 rounded-full bg-black/70 px-3 py-1 text-xs font-semibold text-white">
+      <div style={{ opacity: dismissOpacity }} className="pointer-events-none absolute left-3 top-3 z-10 rounded-full bg-black/75 px-2.5 py-1 text-[11px] font-semibold text-white">
         DISMISS
       </div>
-      <div style={{ opacity: saveOpacity }} className="pointer-events-none absolute right-4 top-4 z-10 rounded-full bg-emerald-600/90 px-3 py-1 text-xs font-semibold text-white">
+      <div style={{ opacity: saveOpacity }} className="pointer-events-none absolute right-3 top-3 z-10 rounded-full bg-emerald-600/90 px-2.5 py-1 text-[11px] font-semibold text-white">
         SAVE
       </div>
 

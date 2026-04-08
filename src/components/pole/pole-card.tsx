@@ -10,8 +10,7 @@ function formatDateTime(startsAt: string, timezone: string): string {
     day: 'numeric',
     hour: 'numeric',
     minute: '2-digit',
-    timeZone: timezone,
-    timeZoneName: 'short'
+    timeZone: timezone
   }).format(new Date(startsAt));
 }
 
@@ -19,24 +18,19 @@ export function PoleCard({ event }: { event: PoleEvent }) {
   const eventHref = `/events/${event.slug}` as Route;
 
   return (
-    <article className="overflow-hidden rounded-2xl border border-border bg-white shadow-sm">
-      <Link href={eventHref} className="block">
+    <article className="h-full overflow-hidden rounded-md border border-black/15 bg-white/80 shadow-[0_18px_34px_rgba(0,0,0,0.32)] backdrop-blur-[1px]">
+      <Link href={eventHref} className="relative block h-full w-full">
         {event.flyer_url ? (
-          <Image src={event.flyer_url} alt={`Flyer for ${event.title}`} width={1200} height={1600} unoptimized className="h-[22rem] w-full object-cover" />
+          <Image src={event.flyer_url} alt={`Flyer for ${event.title}`} width={1200} height={1600} unoptimized className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-[22rem] items-center justify-center bg-muted text-sm text-muted-foreground">Flyer coming soon</div>
+          <div className="flex h-full items-center justify-center bg-zinc-100 text-sm text-zinc-600">Flyer coming soon</div>
         )}
-      </Link>
 
-      <div className="space-y-2 p-4">
-        <p className="text-xs text-muted-foreground">{formatDateTime(event.starts_at, event.timezone)}</p>
-        <Link href={eventHref} className="block text-xl font-semibold leading-tight hover:underline">
-          {event.title}
-        </Link>
-        <p className="text-sm text-muted-foreground">{event.venue_name || `${event.city}, ${event.state}`}</p>
-        {event.venue_name ? <p className="text-sm text-muted-foreground">{event.city}, {event.state}</p> : null}
-        {event.category_label ? <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{event.category_label}</p> : null}
-      </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-3 pt-8 text-white">
+          <p className="truncate text-sm font-semibold">{event.title}</p>
+          <p className="truncate text-xs text-white/85">{formatDateTime(event.starts_at, event.timezone)}</p>
+        </div>
+      </Link>
     </article>
   );
 }
