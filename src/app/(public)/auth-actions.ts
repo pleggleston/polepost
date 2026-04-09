@@ -26,6 +26,14 @@ function toFallbackUsername(seed: string, userId: string) {
   return `${base}_${suffix}`;
 }
 
+function getProjectRef(supabaseUrl: string) {
+  try {
+    return new URL(supabaseUrl).hostname.split('.')[0] ?? 'unknown';
+  } catch {
+    return 'invalid-url';
+  }
+}
+
 export async function signupWithPassword(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const emailRaw = formData.get('email');
   const passwordRaw = formData.get('password');
@@ -44,6 +52,12 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
   }
 
   const supabase = await createClient();
+  const projectRef = getProjectRef(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+
+  console.info('[auth][signup] Attempting signUp', {
+    email,
+    projectRef
+  });
 
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -51,13 +65,32 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
   });
 
   if (error) {
+    console.error('[auth][signup] signUp failed', {
+      email,
+      projectRef,
+      code: error.code,
+      message: error.message,
+      status: error.status
+    });
     return { error: error.message };
   }
 
   const userId = data.user?.id;
   if (!userId) {
+    console.error('[auth][signup] signUp returned no user', {
+      email,
+      projectRef,
+      hasSession: Boolean(data.session)
+    });
     return { error: 'Signup succeeded, but user id was missing.' };
   }
+
+  console.info('[auth][signup] signUp succeeded', {
+    email,
+    projectRef,
+    userId,
+    hasSession: Boolean(data.session)
+  });
 
   const usernameSeed = toUsernameSeed(email);
   const profileDisplayName = displayName || usernameSeed;
@@ -95,11 +128,28 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
     );
 
     if (retryError) {
+      console.error('[auth][signup] profile upsert retry failed', {
+        userId,
+        projectRef,
+        message: retryError.message,
+        code: retryError.code
+      });
       return { error: `Signup succeeded, but profile bootstrap failed: ${retryError.message}` };
     }
   } else if (upsertError) {
+    console.error('[auth][signup] profile upsert failed', {
+      userId,
+      projectRef,
+      message: upsertError.message,
+      code: upsertError.code
+    });
     return { error: `Signup succeeded, but profile bootstrap failed: ${upsertError.message}` };
   }
+
+  console.info('[auth][signup] profile bootstrap succeeded', {
+    userId,
+    projectRef
+  });
 
   redirect('/');
 }
@@ -120,14 +170,45 @@ export async function loginWithPassword(_prevState: AuthActionState, formData: F
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const projectRef = getProjectRef(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+
+  console.info('[auth][login] Attempting signInWithPassword', {
+    email,
+    projectRef
+  });
+
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password
   });
 
   if (error) {
+    console.error('[auth][login] signInWithPassword failed', {
+      email,
+      projectRef,
+      code: error.code,
+      message: error.message,
+      status: error.status
+    });
     return { error: error.message };
   }
+
+  const userId = data.user?.id;
+  if (!userId) {
+    console.error('[auth][login] signInWithPassword returned no user', {
+      email,
+      projectRef,
+      hasSession: Boolean(data.session)
+    });
+    return { error: 'Login failed: Supabase did not return an authenticated user.' };
+  }
+
+  console.info('[auth][login] signInWithPassword succeeded', {
+    email,
+    projectRef,
+    userId,
+    hasSession: Boolean(data.session)
+  });
 
   redirect('/');
 }

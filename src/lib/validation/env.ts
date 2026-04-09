@@ -1,17 +1,41 @@
 import { z } from 'zod';
 
+function isPlaceholderValue(value: string) {
+  return value.includes('YOUR_PROJECT_REF') || value.includes('YOUR_ANON_KEY');
+}
+
 const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1)
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  NEXT_PUBLIC_SUPABASE_PROJECT_REF: z.string().min(1).optional()
 });
 
 const parsedPublicEnv = publicEnvSchema.safeParse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  NEXT_PUBLIC_SUPABASE_PROJECT_REF: process.env.NEXT_PUBLIC_SUPABASE_PROJECT_REF
 });
 
 if (!parsedPublicEnv.success) {
   throw new Error(`Invalid public environment variables: ${parsedPublicEnv.error.message}`);
+}
+
+if (isPlaceholderValue(parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_URL)) {
+  throw new Error('Invalid public environment variables: NEXT_PUBLIC_SUPABASE_URL is still a placeholder value.');
+}
+
+if (isPlaceholderValue(parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
+  throw new Error('Invalid public environment variables: NEXT_PUBLIC_SUPABASE_ANON_KEY is still a placeholder value.');
+}
+
+if (parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_PROJECT_REF) {
+  const configuredProjectRef = new URL(parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_URL).hostname.split('.')[0] ?? '';
+
+  if (configuredProjectRef !== parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_PROJECT_REF) {
+    throw new Error(
+      `Invalid public environment variables: NEXT_PUBLIC_SUPABASE_URL project ref (${configuredProjectRef}) does not match NEXT_PUBLIC_SUPABASE_PROJECT_REF (${parsedPublicEnv.data.NEXT_PUBLIC_SUPABASE_PROJECT_REF}).`
+    );
+  }
 }
 
 export const env = parsedPublicEnv.data;
