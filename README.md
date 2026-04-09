@@ -31,6 +31,7 @@ PolePost is a mobile-first, flyer-first local event discovery app. This repo cur
 
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_SUPABASE_PROJECT_REF` (optional but recommended safety check)
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 Validation is centralized in `src/lib/validation/env.ts`.
