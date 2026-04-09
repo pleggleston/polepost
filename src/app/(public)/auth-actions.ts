@@ -94,6 +94,7 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
 
   const usernameSeed = toUsernameSeed(email);
   const profileDisplayName = displayName || usernameSeed;
+  const publicSchema = supabase.schema('public');
   const baseProfilePayload = {
     id: userId,
     display_name: profileDisplayName,
@@ -105,7 +106,7 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
     home_state: null
   };
 
-  const { error: upsertError } = await supabase.from('profiles').upsert(
+  const { error: upsertError } = await publicSchema.from('profiles').upsert(
     {
       ...baseProfilePayload,
       username: usernameSeed
@@ -117,7 +118,7 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
 
   if (upsertError?.code === '23505') {
     const fallbackUsername = toFallbackUsername(usernameSeed, userId);
-    const { error: retryError } = await supabase.from('profiles').upsert(
+    const { error: retryError } = await publicSchema.from('profiles').upsert(
       {
         ...baseProfilePayload,
         username: fallbackUsername
