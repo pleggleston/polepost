@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { getAuthConfirmationRedirectUrl } from '@/lib/auth/site-url';
 
 type AuthActionState = {
   error: string | null;
@@ -53,15 +54,20 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
 
   const supabase = await createClient();
   const projectRef = getProjectRef(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '');
+  const emailRedirectTo = getAuthConfirmationRedirectUrl();
 
   console.info('[auth][signup] Attempting signUp', {
     email,
-    projectRef
+    projectRef,
+    emailRedirectTo
   });
 
   const { data, error } = await supabase.auth.signUp({
     email,
-    password
+    password,
+    options: {
+      emailRedirectTo
+    }
   });
 
   if (error) {
