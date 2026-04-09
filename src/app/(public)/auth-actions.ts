@@ -20,6 +20,12 @@ function toUsernameSeed(email: string) {
   return `user_${crypto.randomUUID().replace(/-/g, '').slice(0, 8)}`;
 }
 
+function toFallbackUsername(seed: string, userId: string) {
+  const suffix = userId.replace(/-/g, '').slice(0, 6);
+  const base = seed.slice(0, 17);
+  return `${base}_${suffix}`;
+}
+
 export async function signupWithPassword(_prevState: AuthActionState, formData: FormData): Promise<AuthActionState> {
   const emailRaw = formData.get('email');
   const passwordRaw = formData.get('password');
@@ -53,33 +59,46 @@ export async function signupWithPassword(_prevState: AuthActionState, formData: 
     return { error: 'Signup succeeded, but user id was missing.' };
   }
 
-  const username = toUsernameSeed(email);
-  const profileDisplayName = displayName || username;
-  const profilePayload = {
+  const usernameSeed = toUsernameSeed(email);
+  const profileDisplayName = displayName || usernameSeed;
+  const baseProfilePayload = {
     id: userId,
-    username,
     display_name: profileDisplayName,
     role: 'user' as const,
     is_organizer_enabled: false,
-    is_21_verified: false
+    is_21_verified: false,
+    verified_21_at: null,
+    home_city: null,
+    home_state: null
   };
 
-  const { error: upsertError } = await supabase.from('profiles').upsert(profilePayload, {
-    onConflict: 'id'
-  });
-
-  if (upsertError) {
-    const { error: updateError } = await supabase.from('profiles').update({
-      username,
-      display_name: profileDisplayName,
-      role: 'user' as const,
-      is_organizer_enabled: false,
-      is_21_verified: false
-    }).eq('id', userId);
-
-    if (updateError) {
-      return { error: `Signup succeeded, but profile bootstrap failed: ${updateError.message}` };
+  const { error: upsertError } = await supabase.from('profiles').upsert(
+    {
+      ...baseProfilePayload,
+      username: usernameSeed
+    },
+    {
+      onConflict: 'id'
     }
+  );
+
+  if (upsertError?.code === '23505') {
+    const fallbackUsername = toFallbackUsername(usernameSeed, userId);
+    const { error: retryError } = await supabase.from('profiles').upsert(
+      {
+        ...baseProfilePayload,
+        username: fallbackUsername
+      },
+      {
+        onConflict: 'id'
+      }
+    );
+
+    if (retryError) {
+      return { error: `Signup succeeded, but profile bootstrap failed: ${retryError.message}` };
+    }
+  } else if (upsertError) {
+    return { error: `Signup succeeded, but profile bootstrap failed: ${upsertError.message}` };
   }
 
   redirect('/');
