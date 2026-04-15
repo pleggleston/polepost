@@ -67,7 +67,7 @@ export function SavedEventsList({ initialItems }: SavedEventsListProps) {
           <article key={item.event_id} className="overflow-hidden rounded-xl border border-border bg-white">
             <Link href={`/events/${item.event.slug}`} className="block">
               {item.event.flyer_url ? (
-                <Image src={item.event.flyer_url} alt={`Flyer for ${item.event.title}`} width={1200} height={800} unoptimized className="h-48 w-full object-cover" />
+                <Image src={item.event.flyer_url} alt={`Flyer for ${item.event.title}`} width={1200} height={800} className="h-48 w-full object-cover" />
               ) : (
                 <div className="flex h-48 w-full items-center justify-center bg-muted text-sm text-muted-foreground">Flyer coming soon</div>
               )}

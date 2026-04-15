@@ -57,7 +57,6 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
           alt={`Flyer for ${event.title}`}
           width={1200}
           height={1600}
-          unoptimized
           className="h-auto w-full rounded-xl border border-border object-cover"
         />
       ) : (
