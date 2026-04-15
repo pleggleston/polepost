@@ -64,12 +64,19 @@ export function LoginForm() {
         </button>
       </fieldset>
 
-      <p className="text-sm text-muted-foreground">
-        Need an account?{' '}
-        <Link href="/signup" className="font-medium text-primary hover:underline">
-          Sign up
-        </Link>
-      </p>
+      <div className="space-y-1">
+        <p className="text-sm text-muted-foreground">
+          Need an account?{' '}
+          <Link href="/signup" className="font-medium text-primary hover:underline">
+            Sign up
+          </Link>
+        </p>
+        <p className="text-sm text-muted-foreground">
+          <Link href="/forgot-password" className="font-medium text-primary hover:underline">
+            Forgot password?
+          </Link>
+        </p>
+      </div>
     </form>
   );
 }

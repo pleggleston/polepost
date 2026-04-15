@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { AdminAccessBlocked } from '@/components/admin/admin-access-blocked';
 import { getAdminAccessContext, listAdminEvents, listModerationQueueEvents } from '@/lib/admin/moderation';
+import { listPendingOrganizerApplications } from '@/lib/admin/organizers';
 
 export default async function AdminPage() {
   let access: Awaited<ReturnType<typeof getAdminAccessContext>>;
@@ -20,8 +21,13 @@ export default async function AdminPage() {
 
   let queueItems: Awaited<ReturnType<typeof listModerationQueueEvents>> = [];
   let allEvents: Awaited<ReturnType<typeof listAdminEvents>> = [];
+  let pendingOrganizers: Awaited<ReturnType<typeof listPendingOrganizerApplications>> = [];
   try {
-    [queueItems, allEvents] = await Promise.all([listModerationQueueEvents(), listAdminEvents()]);
+    [queueItems, allEvents, pendingOrganizers] = await Promise.all([
+      listModerationQueueEvents(),
+      listAdminEvents(),
+      listPendingOrganizerApplications()
+    ]);
   } catch {
     return (
       <section className="space-y-4">
@@ -48,12 +54,16 @@ export default async function AdminPage() {
           <Link href="/admin/events" className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
             View all events
           </Link>
+          <Link href="/admin/organizers" className="rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted">
+            Organizer applications
+          </Link>
         </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <StatCard label="Needs moderation" value={String(queueItems.length)} help="Events currently in pending_review/pending." />
         <StatCard label="Total admin-visible events" value={String(allEvents.length)} help="All events available to moderator/admin review." />
+        <StatCard label="Pending organizer applications" value={String(pendingOrganizers.length)} help="Organizer account requests awaiting review." />
       </div>
     </section>
   );

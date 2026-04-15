@@ -40,8 +40,6 @@ export function AdminModerationQueue({ events }: AdminModerationQueueProps) {
                   alt={`${event.title} flyer`}
                   width={560}
                   height={720}
-                  unoptimized
-                  loader={({ src }) => src}
                   className="w-full rounded-md border border-border object-cover"
                 />
               ) : (
