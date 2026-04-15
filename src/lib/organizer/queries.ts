@@ -19,6 +19,7 @@ export type OrganizerEventListItem = {
   starts_at: string;
   moderation_status: ModerationStatus;
   lifecycle_status: EventLifecycleStatus;
+  moderation_reason: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -110,7 +111,7 @@ export async function listOwnedEvents(organizerId: string): Promise<OrganizerEve
 
   const { data, error } = await supabase
     .from('events')
-    .select('id, title, starts_at, moderation_status, lifecycle_status, created_at, updated_at')
+    .select('id, title, starts_at, moderation_status, lifecycle_status, moderation_reason, created_at, updated_at')
     .eq('organizer_id', organizerId)
     .order('updated_at', { ascending: false })
     .returns<OrganizerEventListItem[]>();
