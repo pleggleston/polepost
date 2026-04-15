@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import {
   approveOrganizerApplication,
-  denyOrganizerApplication
+  denyOrganizerApplication,
+  disableOrganizer
 } from '@/lib/admin/organizers';
 
 type ActionState = { error: string | null };
@@ -23,6 +24,17 @@ export async function denyOrganizerAction(
   organizerId: string
 ): Promise<ActionState> {
   const result = await denyOrganizerApplication(organizerId);
+  if (result.error) return { error: result.error };
+  revalidatePath('/admin/organizers');
+  revalidatePath('/admin');
+  return { error: null };
+}
+
+export async function disableOrganizerAction(
+  organizerId: string,
+  ownerProfileId: string
+): Promise<ActionState> {
+  const result = await disableOrganizer(organizerId, ownerProfileId);
   if (result.error) return { error: result.error };
   revalidatePath('/admin/organizers');
   revalidatePath('/admin');

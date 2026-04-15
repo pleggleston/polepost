@@ -1,7 +1,8 @@
 import { AdminAccessBlocked } from '@/components/admin/admin-access-blocked';
+import { AdminActiveOrganizers } from '@/components/admin/admin-active-organizers';
 import { AdminOrganizerApplications } from '@/components/admin/admin-organizer-applications';
 import { getAdminAccessContext } from '@/lib/admin/moderation';
-import { listPendingOrganizerApplications } from '@/lib/admin/organizers';
+import { listActiveOrganizers, listPendingOrganizerApplications } from '@/lib/admin/organizers';
 
 export default async function AdminOrganizersPage() {
   const access = await getAdminAccessContext();
@@ -11,37 +12,52 @@ export default async function AdminOrganizersPage() {
   }
 
   let applications: Awaited<ReturnType<typeof listPendingOrganizerApplications>> = [];
+  let activeOrganizers: Awaited<ReturnType<typeof listActiveOrganizers>> = [];
+
   try {
-    applications = await listPendingOrganizerApplications();
+    [applications, activeOrganizers] = await Promise.all([
+      listPendingOrganizerApplications(),
+      listActiveOrganizers()
+    ]);
   } catch {
     return (
       <section className="space-y-4">
         <header className="rounded-xl border border-border bg-card p-4">
-          <h1 className="text-lg font-semibold">Organizer applications</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Review pending organizer account requests.</p>
+          <h1 className="text-lg font-semibold">Organizers</h1>
         </header>
         <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-          Could not load applications right now. Please refresh and try again.
+          Could not load organizer data right now. Please refresh and try again.
         </div>
       </section>
     );
   }
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <header className="rounded-xl border border-border bg-card p-4">
-        <h1 className="text-lg font-semibold">Organizer applications</h1>
+        <h1 className="text-lg font-semibold">Organizers</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review pending organizer account requests. Approved organizers can submit events for moderation.
+          Review pending applications and manage active organizer accounts.
         </p>
-        {applications.length > 0 ? (
-          <p className="mt-2 text-sm font-medium">
-            {applications.length} pending {applications.length === 1 ? 'application' : 'applications'}
-          </p>
-        ) : null}
       </header>
 
-      <AdminOrganizerApplications applications={applications} />
+      {/* Pending applications */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">
+            Pending applications{applications.length > 0 ? ` (${applications.length})` : ''}
+          </h2>
+        </div>
+        <AdminOrganizerApplications applications={applications} />
+      </div>
+
+      {/* Active organizers */}
+      <div className="space-y-3">
+        <h2 className="text-sm font-semibold">
+          Active organizers{activeOrganizers.length > 0 ? ` (${activeOrganizers.length})` : ''}
+        </h2>
+        <AdminActiveOrganizers organizers={activeOrganizers} />
+      </div>
     </section>
   );
 }
