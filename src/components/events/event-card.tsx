@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import type { Route } from 'next';
 import type { PublicEvent } from '@/lib/events/public-events';
@@ -10,7 +11,9 @@ export function EventCard({ event }: { event: PublicEvent }) {
     <article className="overflow-hidden rounded-xl border border-border bg-white">
       <Link href={eventHref} className="block">
         {event.flyer_url ? (
-          <img src={event.flyer_url} alt={`Flyer for ${event.title}`} className="h-48 w-full object-cover" loading="lazy" />
+          <div className="relative h-48 w-full">
+            <Image src={event.flyer_url} alt={`Flyer for ${event.title}`} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+          </div>
         ) : (
           <div className="flex h-48 w-full items-center justify-center bg-muted text-sm text-muted-foreground">Flyer coming soon</div>
         )}

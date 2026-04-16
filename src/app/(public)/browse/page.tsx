@@ -28,7 +28,13 @@ export default async function BrowsePage({ searchParams }: BrowsePageProps) {
         <FilterBar city={filters.city} category={filters.category} datePreset={filters.datePreset} categories={categories} />
 
         {events.length > 0 ? (
-          <EventList events={events} />
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              {events.length} event{events.length !== 1 ? 's' : ''} found
+              {hasActiveFilters ? ' matching your filters' : ''}
+            </p>
+            <EventList events={events} />
+          </div>
         ) : (
           <EmptyState
             title="No matching events"
