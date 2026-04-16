@@ -4,12 +4,25 @@ type FilterBarProps = {
   city?: string;
   category?: string;
   datePreset?: DatePreset;
+  search?: string;
   categories: PublicCategory[];
 };
 
-export function FilterBar({ city, category, datePreset, categories }: FilterBarProps) {
+export function FilterBar({ city, category, datePreset, search, categories }: FilterBarProps) {
   return (
-    <form className="grid grid-cols-1 gap-3 rounded-xl border border-border bg-white p-3 md:grid-cols-4" action="/browse" method="get">
+    <form className="space-y-3 rounded-xl border border-border bg-white p-3" action="/browse" method="get">
+      <div className="grid gap-1">
+        <label htmlFor="search-filter" className="text-xs font-medium text-muted-foreground">Search</label>
+        <input
+          id="search-filter"
+          type="text"
+          name="search"
+          defaultValue={search}
+          placeholder="Event title or venue…"
+          className="rounded-md border border-border px-3 py-2 text-sm"
+        />
+      </div>
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
       <div className="grid gap-1">
         <label htmlFor="city-filter" className="text-xs font-medium text-muted-foreground">
           City
@@ -56,6 +69,7 @@ export function FilterBar({ city, category, datePreset, categories }: FilterBarP
         <a href="/browse" className="flex-1 rounded-md border border-border px-3 py-2 text-center text-sm">
           Reset
         </a>
+      </div>
       </div>
     </form>
   );

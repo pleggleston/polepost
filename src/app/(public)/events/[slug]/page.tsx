@@ -79,6 +79,23 @@ export default async function EventDetailPage({ params }: EventDetailPageProps) 
         <CalendarActions event={event} />
       </section>
 
+      {event.organizer && (
+        <section className="space-y-2 rounded-xl border border-border p-4">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Organizer</h2>
+          <p className="text-sm font-medium">{event.organizer.name}</p>
+          {event.organizer.contact_email && (
+            <a href={`mailto:${event.organizer.contact_email}`} className="block text-sm text-primary hover:underline">
+              {event.organizer.contact_email}
+            </a>
+          )}
+          {event.organizer.instagram_url && (
+            <a href={event.organizer.instagram_url} target="_blank" rel="noreferrer" className="block text-sm text-primary hover:underline">
+              Instagram
+            </a>
+          )}
+        </section>
+      )}
+
       <section className="space-y-2 rounded-xl border border-border p-4">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Event details</h2>
         <EventMeta event={event} />

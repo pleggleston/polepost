@@ -4,7 +4,9 @@ import { PoleFeed } from '@/components/pole/pole-feed';
 import type { PoleEvent } from '@/components/pole/types';
 import { listPublicEvents } from '@/lib/events/public-events';
 
-function mapToPoleEvent(event: Awaited<ReturnType<typeof listPublicEvents>>[number]): PoleEvent {
+type ListedEvent = Awaited<ReturnType<typeof listPublicEvents>>['events'][number];
+
+function mapToPoleEvent(event: ListedEvent): PoleEvent {
   const safeId = typeof event.id === 'string' && event.id.length > 0 ? event.id : `event-${Math.random().toString(16).slice(2)}`;
   const safeSlug = typeof event.slug === 'string' ? event.slug : '';
   const safeTitle = typeof event.title === 'string' ? event.title : 'Untitled event';
@@ -44,7 +46,7 @@ function renderPoleShell(content: ReactNode) {
 
 export default async function PolePage() {
   try {
-    const events = await listPublicEvents();
+    const { events } = await listPublicEvents();
     const poleEvents = events.map(mapToPoleEvent);
 
     if (poleEvents.length === 0) {

@@ -23,8 +23,11 @@ const PUBLIC_EVENT_SELECT = `
   external_url,
   visibility,
   age_requirement,
-  category:event_categories (slug, label)
+  category:event_categories (slug, label),
+  organizer:organizers!events_organizer_id_fkey (name, slug, contact_email, instagram_url)
 `;
+
+export const PAGE_SIZE = 20;
 
 export const DATE_PRESETS = ['today', 'this_week', 'this_weekend'] as const;
 export type DatePreset = (typeof DATE_PRESETS)[number];
@@ -33,13 +36,17 @@ export type PublicEventFilters = {
   city?: string;
   category?: string;
   datePreset?: DatePreset;
+  search?: string;
   limit?: number;
+  page?: number;
 };
 
 export type PublicEventQueryParams = {
   city?: string;
   category?: string;
   date?: string;
+  search?: string;
+  page?: string;
 };
 
 type PublicEventRow = {
@@ -63,6 +70,12 @@ type PublicEventRow = {
     slug: string;
     label: string;
   } | null;
+  organizer: {
+    name: string;
+    slug: string;
+    contact_email: string | null;
+    instagram_url: string | null;
+  } | null;
 };
 
 export type PublicEvent = PublicEventRow;
@@ -76,11 +89,13 @@ export function normalizePublicEventFilters(params: PublicEventQueryParams): Pub
   const city = params.city?.trim();
   const category = params.category?.trim();
   const date = params.date?.trim();
+  const search = params.search?.trim();
 
   return {
     city: city || undefined,
     category: category || undefined,
-    datePreset: date && DATE_PRESETS.includes(date as DatePreset) ? (date as DatePreset) : undefined
+    datePreset: date && DATE_PRESETS.includes(date as DatePreset) ? (date as DatePreset) : undefined,
+    search: search || undefined
   };
 }
 
@@ -133,21 +148,28 @@ async function resolveCategoryIdBySlug(slug: string): Promise<string | null> {
   return data?.id ?? null;
 }
 
-export async function listPublicEvents(filters: PublicEventFilters = {}): Promise<PublicEvent[]> {
+export async function listPublicEvents(
+  filters: PublicEventFilters = {}
+): Promise<{ events: PublicEvent[]; total: number }> {
   const supabase = await createClient();
 
   const trimmedCity = filters.city?.trim() || undefined;
   const trimmedCategory = filters.category?.trim() || undefined;
+  const trimmedSearch = filters.search?.trim() || undefined;
   const dateRange = toDateRange(filters.datePreset);
 
   const categoryId = trimmedCategory ? await resolveCategoryIdBySlug(trimmedCategory) : null;
   if (trimmedCategory && !categoryId) {
-    return [];
+    return { events: [], total: 0 };
   }
+
+  const page = Math.max(1, filters.page ?? 1);
+  const limit = filters.limit ?? PAGE_SIZE;
+  const offset = (page - 1) * limit;
 
   let query = supabase
     .from('events')
-    .select(PUBLIC_EVENT_SELECT)
+    .select(PUBLIC_EVENT_SELECT, { count: 'exact' })
     .eq('visibility', PUBLIC_VISIBILITY)
     .eq('moderation_status', APPROVED_MODERATION_STATUS)
     .eq('lifecycle_status', APPROVED_LIFECYCLE_STATUS)
@@ -172,17 +194,19 @@ export async function listPublicEvents(filters: PublicEventFilters = {}): Promis
     query = query.lt('starts_at', dateRange.end);
   }
 
-  if (filters.limit) {
-    query = query.limit(filters.limit);
+  if (trimmedSearch) {
+    query = query.or(`title.ilike.%${trimmedSearch}%,venue_name.ilike.%${trimmedSearch}%`);
   }
 
-  const { data, error } = await query.returns<PublicEventRow[]>();
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, count, error } = await query.returns<PublicEventRow[]>();
 
   if (error) {
     throw new Error(`Failed to list public events: ${error.message}`);
   }
 
-  return data ?? [];
+  return { events: data ?? [], total: count ?? 0 };
 }
 
 export const getPublicEventBySlug = cache(async (slug: string): Promise<PublicEvent | null> => {
@@ -207,8 +231,9 @@ export const getPublicEventBySlug = cache(async (slug: string): Promise<PublicEv
   return data;
 });
 
-export function getFeaturedPublicEvents(limit = 3): Promise<PublicEvent[]> {
-  return listPublicEvents({ limit });
+export async function getFeaturedPublicEvents(limit = 3): Promise<PublicEvent[]> {
+  const { events } = await listPublicEvents({ limit });
+  return events;
 }
 
 export const listPublicCategories = cache(async (): Promise<PublicCategory[]> => {
