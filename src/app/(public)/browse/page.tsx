@@ -1,3 +1,4 @@
+import type { Route } from 'next';
 import Link from 'next/link';
 import { EmptyState } from '@/components/events/empty-state';
 import { EventList } from '@/components/events/event-list';
@@ -8,7 +9,7 @@ type BrowsePageProps = {
   searchParams: Promise<PublicEventQueryParams>;
 };
 
-function buildPageHref(filters: ReturnType<typeof normalizePublicEventFilters>, p: number): string {
+function buildPageHref(filters: ReturnType<typeof normalizePublicEventFilters>, p: number): Route {
   const sp = new URLSearchParams();
   if (filters.city) sp.set('city', filters.city);
   if (filters.category) sp.set('category', filters.category);
@@ -16,7 +17,7 @@ function buildPageHref(filters: ReturnType<typeof normalizePublicEventFilters>, 
   if (filters.search) sp.set('search', filters.search);
   if (p > 1) sp.set('page', String(p));
   const qs = sp.toString();
-  return qs ? `/browse?${qs}` : '/browse';
+  return (qs ? `/browse?${qs}` : '/browse') as Route;
 }
 
 export default async function BrowsePage({ searchParams }: BrowsePageProps) {
